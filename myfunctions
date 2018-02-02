@@ -1,0 +1,94 @@
+mfinstall(){
+	# Install myfunctions on bashrc to run your functions as you open a new terminal
+	BASHRC="$HOME/.bashrc"
+	if [[ -f myfunctions ]]; then
+		cp myfunctions $HOME/.myfunctions
+	fi
+	if [[ -f $BASHRC ]]; then
+		INSTALLED=$(grep 'My Functions' $BASHRC > /dev/null ; echo $?)
+		if [[ $INSTALLED -eq "0" ]]; then
+			echo "Alredy Installed"
+		else
+			echo -e "\n# My Functions - By Plastico\nif [ -f ~/.myfunctions ]; then\n\t. ~/.myfunctions\nfi\n" >> $BASHRC
+			echo "Myfunctions was installed successfully"
+		fi
+	else
+		echo "File .bashrc not found"
+	fi
+}
+
+myfunctions(){
+	# Show functions in the file .myfunctions with a brief description of what they do
+	grep -A1 '(){' $HOME/.myfunctions | grep -v 'grep\|echo' | sed 's/(){//' | tr '\n' ' ' | sed 's/#/:/g;s/\s\{1,\}/ /g;s/ -- /\n/g'
+	echo
+}
+
+mincalc(){
+	# Time sum based on the array of minutes given
+	SECS=0
+	MINS=0
+	ARRAY=$@
+	for i in ${ARRAY[@]}; do
+		SEC=$(echo ${i} | cut -d: -f2)
+		SECS=$(($SECS+$SEC))
+	done
+	for i in ${ARRAY[@]}; do
+		MIN=$(echo ${i} | cut -d: -f1)
+		MINS=$(($MINS+$MIN))
+	done
+	MINSFROMSECS=$(echo "$SECS/60" | bc)
+	SECSFROMSECS=$(echo "$SECS%60" | bc)
+	MINS=$(($MINSFROMSECS+$MINS))
+	HOURSFROMMINS=$(echo "$MINS/60" | bc)
+	MINSFROMMINS=$(echo "$MINS%60" | bc)
+	TOTALHOURS=$(echo "000$HOURSFROMMINS" | sed 's/^.*\(..\)$/\1/')
+	TOTALMINUTES=$(echo "000$MINSFROMMINS" | sed 's/^.*\(..\)$/\1/')
+	TOTALSECONDS=$(echo "000$SECSFROMSECS" | sed 's/^.*\(..\)$/\1/')
+	echo "$TOTALHOURS:$TOTALMINUTES:$TOTALSECONDS"
+}
+
+dropthejar(){
+	# Add rules in iptables to block HotJar
+	AWK=$(which awk)
+	GREP=$(which grep)
+	IPTABLES=$(which iptables)
+	NSLOOKUP=$(which nslookup)
+	HOTJARURLS=(hotjar.com static.hotjar.com script.hotjar.com vars.hotjar.com insights.hotjar.com)
+
+	for i in ${HOTJARURLS[@]}; do
+		IPS=$($NSLOOKUP ${i} | grep 'Address:' | grep -v 127 | awk '{print $NF}')
+		for j in ${IPS[@]}; do
+			$IPTABLES -I INPUT -s ${j} -j DROP
+			$IPTABLES -I OUTPUT -s ${j} -j DROP
+		done
+	done
+}
+
+percentage(){
+        # Simple Percentage calculation
+	if [[ $1 -ge $2 ]]; then
+		BIGGER=$1
+		SMALLER=$2
+	else
+		BIGGER=$2
+		SMALLER=$1
+	fi
+	RESPONSE=$(echo "($SMALLER/$BIGGER)*100" | bc -l)
+	echo $RESPONSE
+}
+
+go(){
+	# Launch a remote server access via ssh or rdesktop
+	TTL=$(ping -c 1 $1 | grep ttl | sed 's/^.* ttl=\([0-9]\{1,\}\) .*$/\1/')
+	case $TTL in
+		63 | 64 | 255 ) xterm -bg black -fg white -title $1 -e ssh -v $1 & ;;
+		32 | 128 ) rdesktop $1 -g 1850x1000 -r disk:dropbox=$HOME/Dropbox & ;;
+	esac
+}
+
+geoipfetch(){
+	# Geo Localization from a Given IP Address or Site URL
+	IP=$(echo $1 | sed '/^\(\([1]\?[0-9]\{1,2\}\|2\([0-4][0-9]\|5[0-5]\)\)\.\)\{3\}\([1]\?[0-9]\{1,2\}\|2\([0-4][0-9]\|5[0-5]\)\)$/!d')
+	[[ $IP ]] || IP=$(nslookup $1 | grep 'Address:' | grep -v 127 | awk '{print $NF}')
+	curl -s http://ip-api.com/json/$IP | jq '.country' | sed 's/"//g'
+}
