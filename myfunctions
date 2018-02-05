@@ -49,23 +49,28 @@ mincalc(){
 
 dropthejar(){
 	# Add rules in iptables to block HotJar
-	AWK=$(which awk)
-	GREP=$(which grep)
-	IPTABLES=$(which iptables)
-	NSLOOKUP=$(which nslookup)
 	HOTJARURLS=(hotjar.com static.hotjar.com script.hotjar.com vars.hotjar.com insights.hotjar.com)
 
 	for i in ${HOTJARURLS[@]}; do
-		IPS=$($NSLOOKUP ${i} | grep 'Address:' | grep -v 127 | awk '{print $NF}')
+		IPS=$(nslookup ${i} | grep 'Address:' | grep -v 127 | awk '{print $NF}')
 		for j in ${IPS[@]}; do
-			$IPTABLES -I INPUT -s ${j} -j DROP
-			$IPTABLES -I OUTPUT -s ${j} -j DROP
+			iptables -I INPUT -s ${j} -j DROP
+			iptables -I OUTPUT -s ${j} -j DROP
 		done
 	done
 }
 
 percentage(){
         # Simple Percentage calculation
+	if [[ -z $1 ]]; then
+		echo "insert some value to calculate"
+		return
+	fi
+	if [[ -z $2 ]]; then
+		echo "insert some value to calculate" 
+		return
+	fi
+
 	if [[ $1 -ge $2 ]]; then
 		BIGGER=$1
 		SMALLER=$2
@@ -79,10 +84,14 @@ percentage(){
 
 go(){
 	# Launch a remote server access via ssh or rdesktop
+
+	MONITORSIZE=$(xrandr -q | sed -r '/^[ ]{1,}([0-9]+x[0-9]+)[ ]{1,}[0-9]{1,}\.[0-9]\*.$/!d' | sort -u | awk '{print $1}')
+	MONITORWIDTH=$(echo $MONITORSIZE | awk -Fx '{print $1"*.90"}' | bc | awk -F\. '{print $1}')
+	MONITORHEIGHT=$(echo $MONITORSIZE | awk -Fx '{print $2"*.90"}' | bc | awk -F\. '{print $1}')
 	TTL=$(ping -c 1 $1 | grep ttl | sed 's/^.* ttl=\([0-9]\{1,\}\) .*$/\1/')
 	case $TTL in
 		63 | 64 | 255 ) xterm -bg black -fg white -title $1 -e ssh -v $1 & ;;
-		32 | 128 ) rdesktop $1 -g 1850x1000 -r disk:dropbox=$HOME/Dropbox & ;;
+		32 | 128 ) rdesktop $1 -g "$MONITORWIDTH"x"$MONITORHEIGHT" -r disk:dropbox=$HOME/Dropbox & ;;
 	esac
 }
 
@@ -90,5 +99,10 @@ geoipfetch(){
 	# Geo Localization from a Given IP Address or Site URL
 	IP=$(echo $1 | sed '/^\(\([1]\?[0-9]\{1,2\}\|2\([0-4][0-9]\|5[0-5]\)\)\.\)\{3\}\([1]\?[0-9]\{1,2\}\|2\([0-4][0-9]\|5[0-5]\)\)$/!d')
 	[[ $IP ]] || IP=$(nslookup $1 | grep 'Address:' | grep -v 127 | awk '{print $NF}')
-	curl -s http://ip-api.com/json/$IP | jq '.country' | sed 's/"//g'
+	if [[ -z $IP ]]; then
+		echo "Invalid IP or Name Address"
+		return
+	else
+		curl -s http://ip-api.com/json/$IP | jq '.country' | sed 's/"//g'
+	fi
 }
