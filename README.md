@@ -24,11 +24,13 @@ $ source myfunctions
 $ myfunctions
 mfinstall : Install myfunctions on bashrc to run your functions as you open a new terminal
 myfunctions : Show functions in the file .myfunctions with a brief description of what they do
+pagestatus : Return the HTTP status code from the given url
 mincalc : Time sum based on the array of minutes given
 dropthejar : Add rules in iptables to block HotJar
 percentage : Simple Percentage calculation
 go : Launch a remote server access via ssh or rdesktop
 geoipfetch : Geo Localization from a Given IP Address or Site URL
+formulaone : Show informations about the winner of the last race in F1
 
 # Install
 

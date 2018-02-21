@@ -23,6 +23,16 @@ myfunctions(){
 	echo
 }
 
+pagestatus(){
+	# Return the HTTP status code from the given url
+	HTTPSTATUS=$(curl -sI $1 | sed -r 's/HTTP\/1.. ([^23]..|[^3]0[1]|[23]0[^01]|300) [a-zA-Z]{1,}( [a-zA-Z]{1,})?/\1/;/^[0-9]{1,}/!d;1q' | tr -d '\r')
+	if [[ -n $HTTPSTATUS ]]; then
+		echo "$HTTPSTATUS - $1"
+	else
+		echo "OK - $1"
+	fi
+}
+
 mincalc(){
 	# Time sum based on the array of minutes given
 	SECS=0
@@ -84,7 +94,6 @@ percentage(){
 
 go(){
 	# Launch a remote server access via ssh or rdesktop
-
 	MONITORSIZE=$(xrandr -q | sed -r '/^[ ]{1,}([0-9]+x[0-9]+)[ ]{1,}[0-9]{1,}\.[0-9]\*.$/!d' | sort -u | awk '{print $1}')
 	MONITORWIDTH=$(echo $MONITORSIZE | awk -Fx '{print $1"*.90"}' | bc | awk -F\. '{print $1}')
 	MONITORHEIGHT=$(echo $MONITORSIZE | awk -Fx '{print $2"*.90"}' | bc | awk -F\. '{print $1}')
@@ -97,7 +106,7 @@ go(){
 
 geoipfetch(){
 	# Geo Localization from a Given IP Address or Site URL
-	IP=$(echo $1 | sed '/^\(\([1]\?[0-9]\{1,2\}\|2\([0-4][0-9]\|5[0-5]\)\)\.\)\{3\}\([1]\?[0-9]\{1,2\}\|2\([0-4][0-9]\|5[0-5]\)\)$/!d')
+	IP=$(echo $1 | sed -r '/^(([1]?[0-9]{1,2}|2([0-4][0-9]|5[0-5])).){3}([1]?[0-9]{1,2}|2([0-4][0-9]|5[0-5]))$/!d')
 	[[ $IP ]] || IP=$(nslookup $1 | grep 'Address:' | grep -v 127 | awk '{print $NF}')
 	if [[ -z $IP ]]; then
 		echo "Invalid IP or Name Address"
@@ -105,4 +114,9 @@ geoipfetch(){
 	else
 		curl -s http://ip-api.com/json/$IP | jq '.country' | sed 's/"//g'
 	fi
+}
+
+formulaone(){
+	# Show informations about the winner of the last race in F1
+	curl -s https://ergast.com/api/f1/current/last/results.json | jq '.MRData.RaceTable.Races[] | "Race: " + .raceName + ", Circuit: " + .Circuit.circuitName + ", Winner: " + .Results[0].Driver.givenName + " " + .Results[0].Driver.familyName + ", Constructor: " + .Results[0].Constructor.name + ", Time: " + .Results[0].Time.time' | sed 's/"//g;s/, /\n/g'
 }
