@@ -120,3 +120,33 @@ formulaone(){
 	# Show informations about the winner of the last race in F1
 	curl -s https://ergast.com/api/f1/current/last/results.json | jq '.MRData.RaceTable.Races[] | "Race: " + .raceName + ", Circuit: " + .Circuit.circuitName + ", Winner: " + .Results[0].Driver.givenName + " " + .Results[0].Driver.familyName + ", Constructor: " + .Results[0].Constructor.name + ", Time: " + .Results[0].Time.time' | sed 's/"//g;s/, /\n/g'
 }
+
+miniws(){
+	# Start a minimal Webserver in Python with the current directory as "root"
+	python -m SimpleHTTPServer 8080
+}
+
+dolar(){
+        # Great for Brazillian People, show the convertion between US Dolar and Brazillian Reals
+        curl -s https://www.infomoney.com.br/mercados/cambio | \
+        sed 's/<[^>]*>//g' | \
+        grep -A7 'D&#243;lar \(Comercial\|Turismo\)' | \
+        sed 's/^\s\+//g;s/\r//;/^$/d' | \
+        tr '\n' ' ' | \
+        awk -F' -- ' '{print "\t\tCompra\tVenda\n"$1"\n"$2}' | \
+        sed -r 's/(D&#243;lar [A-Za-z]{1,}) ([0-9]{1,},[0-9]{1,}) ([0-9]{1,},[0-9]{1,}) [-+]?[0-9]{1,},[0-9]{1,}/\1\t\2\t\3/' |  \
+        sed 's/&#243;/ó/'
+}
+
+bitcoin(){
+	# Show the convertion between Bitcoin and Brazillian Reals
+	curl -s https://www.mercadobitcoin.net/api/BTC/ticker/ | \
+	jq '.ticker.buy' | \
+	sed 's/"//g;s/^\([0-9]\{1,\}\.[0-9]\{2\}\).*$/Valor: \1/'
+}
+
+myip(){
+	# Show your Public IP
+	ip=$(curl -s https://api.ipify.org)
+	echo "My public IP address is: $ip"
+}

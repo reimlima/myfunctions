@@ -31,6 +31,10 @@ percentage : Simple Percentage calculation
 go : Launch a remote server access via ssh or rdesktop
 geoipfetch : Geo Localization from a Given IP Address or Site URL
 formulaone : Show informations about the winner of the last race in F1
+miniws : Start a minimal Webserver in Python with the current directory as "root"
+dolar : Great for Brazillian People, show the convertion between US Dolar and Brazillian Reals
+bitcoin : Show the convertion between Bitcoin and Brazillian Reals
+myip : Show your Public IP
 
 # Install
 
