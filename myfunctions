@@ -150,3 +150,12 @@ myip(){
 	ip=$(curl -s https://api.ipify.org)
 	echo "My public IP address is: $ip"
 }
+
+package(){
+        # Package Tracking for packages sent to Brazil via Brazillian Post Service. Give the package track number to this function
+        if [[ $1 ]] ; then
+                curl -s https://api.postmon.com.br/v1/rastreio/ect/$1 | jq '.historico[].situacao' | tail -1 | sed 's/"//g'
+        else
+                echo "Numero de Rastreio Obrigatorio"
+        fi
+}
