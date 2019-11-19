@@ -159,3 +159,26 @@ package(){
                 echo "Numero de Rastreio Obrigatorio"
         fi
 }
+
+strongpw(){
+        #  Generate a 'semi-aleatory' password using a given string, if blank an aleatory word will be used. strong level can be increased from 5 to 32, ex.: 'strongpw string 32'
+        LENGTH=""
+        STRING=""
+        if [[ $1 ]] ; then
+                STRING=$(echo $1 | sed '/[a-z]\{1,\}/!d')
+        fi
+        if [[ -z $STRING ]] ; then
+                SURNAME=$(curl -s https://uinames.com/api/?region=brazil | jq '.surname' | sed 's/"//g')
+                STRING=$(echo ${SURNAME} | sed 's/a/4/g;s/e/3/g;s/i/1/g;s/o/0/g;s/s/5/;s/t/7/g')
+        else
+                STRING=$(echo $1 | sed 's/a/4/g;s/e/3/g;s/i/1/g;s/o/0/g;s/s/5/;s/t/7/g')
+        fi
+        if [[ $2 ]] ; then
+                LENGTH=$(echo $2 | sed '/^\([0-9]\{1\}\|[12][0-9]\|3[012]\)$/!d')
+        fi
+        if [[ -z $LENGTH ]] ; then
+                LENGTH="5"
+        fi
+        RAND=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w ${LENGTH} | head -1)
+        echo "%${RAND}\$${STRING}!"
+}
