@@ -35,6 +35,8 @@ miniws : Start a minimal Webserver in Python with the current directory as "root
 dolar : Great for Brazillian People, show the convertion between US Dolar and Brazillian Reals
 bitcoin : Show the convertion between Bitcoin and Brazillian Reals
 myip : Show your Public IP
+package : Package Tracking for packages sent to Brazil via Brazillian Post Service. Give the package track number to this function
+strongpw : Generate a 'semi-aleatory' password using a given string, if blank an aleatory word will be used. strong level can be increased from 5 to 32, ex.: 'strongpw string 32'
 
 # Install
 
